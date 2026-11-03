@@ -38,7 +38,7 @@ export default function AppNav() {
         );
       })}
       <div className="me">
-        {auth.name}
+        <span className="name">{auth.name}</span>
         <span className="avatar" aria-hidden="true">{initialsOf(auth.name)}</span>
         <button className="btn quiet" type="button" onClick={auth.logOut}>Log out</button>
       </div>
