@@ -13,6 +13,7 @@ import { formatDay } from "../utils/format";
 
 const TITLE = "Tailored CVs";
 const SUB = "Every job you save gets its own copy, made from your base CV.";
+const HANGERS_PER_RAIL = 2;
 
 export default function TailoredPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -194,52 +195,78 @@ export default function TailoredPage() {
     );
   }
 
+  // The wardrobe: CVs still being made first, then the finished ones, two hangers per rail.
+  const hangers = [];
+  for (const job of pendingJobs) {
+    hangers.push({ kind: "pending", key: "pending-" + job.jobId, job: job });
+  }
+  for (const item of versions) {
+    hangers.push({ kind: "version", key: "version-" + item.id, item: item });
+  }
+  const rails = splitIntoRails(hangers, HANGERS_PER_RAIL);
+
   // 5. Render
   return (
     <div className="page">
       <PageHeader title={TITLE} sub={SUB} />
-      <div className="tail-rack">
-        <div className="rail"></div>
-        <div className="tail-row" aria-label="Pick a tailored CV">
-          {pendingJobs.map(function (job) {
+      <div className="tail-layout">
+        <nav className="wardrobe" aria-label="Pick a tailored CV">
+          {rails.map(function (rail, railIndex) {
             return (
-              <div key={"pending-" + job.jobId} className="tail-pick is-pending" role="status">
-                <span className="swing"><Hanger /><MiniSheet /></span>
-                <span className="jobtag">{job.jobTitle} · {job.companyName}</span>
-                <small><span className="spinner" aria-hidden="true"></span>Tailoring…</small>
+              <div className="wardrobe-rail" key={railIndex}>
+                <div className="rail"></div>
+                <div className="wardrobe-row">
+                  {rail.map(function (hanger) {
+                    return <WardrobeHanger key={hanger.key} hanger={hanger} pickedId={pickedId} onPick={pickVersion} />;
+                  })}
+                </div>
               </div>
             );
           })}
-          {versions.map(function (item) {
-            return (
-              <button key={item.id} className="tail-pick" type="button" aria-pressed={item.id === pickedId} onClick={function () { pickVersion(item.id); }}>
-                <span className="swing"><Hanger /><MiniSheet /></span>
-                <span className="jobtag">{item.jobTitle} · {item.companyName}</span>
-                <small>{formatDay(item.createdAt)}</small>
-              </button>
-            );
-          })}
-        </div>
+        </nav>
+        <section className="tail-main">
+          {failedJobs.length > 0 && (
+            <div className="tail-failed" role="alert">
+              {failedJobs.map(function (job) {
+                return (
+                  <p key={job.jobId}>
+                    <span className="err">Couldn't tailor your CV for {job.companyName}. {job.message}</span>
+                    <button className="btn line" type="button" onClick={function () { tailorQueue.retryJob(job.jobId); }}>Try again</button>
+                  </p>
+                );
+              })}
+            </div>
+          )}
+          {actionError !== "" && <p className="err" role="alert">{actionError}</p>}
+          {documentArea}
+        </section>
       </div>
-      {failedJobs.length > 0 && (
-        <div className="tail-failed" role="alert">
-          {failedJobs.map(function (job) {
-            return (
-              <p key={job.jobId}>
-                <span className="err">Couldn't tailor your CV for {job.companyName}. {job.message}</span>
-                <button className="btn line" type="button" onClick={function () { tailorQueue.retryJob(job.jobId); }}>Try again</button>
-              </p>
-            );
-          })}
-        </div>
-      )}
-      {actionError !== "" && <p className="err" role="alert">{actionError}</p>}
-      {documentArea}
     </div>
   );
 }
 
-// The open CV: title, status, tools, then the document.
+// One hanger in the wardrobe: a CV still being made, or a finished CV you can open.
+function WardrobeHanger({ hanger, pickedId, onPick }) {
+  if (hanger.kind === "pending") {
+    const job = hanger.job;
+    return (
+      <div className="tail-pick is-pending" role="status">
+        <span className="swing"><Hanger /><MiniSheet /></span>
+        <span className="jobtag">{job.jobTitle} · {job.companyName}</span>
+        <small><span className="spinner" aria-hidden="true"></span>Tailoring…</small>
+      </div>
+    );
+  }
+  const item = hanger.item;
+  return (
+    <button className="tail-pick" type="button" aria-pressed={item.id === pickedId} onClick={function () { onPick(item.id); }}>
+      <span className="swing"><Hanger /><MiniSheet /></span>
+      <span className="jobtag">{item.jobTitle} · {item.companyName}</span>
+      <small>{formatDay(item.createdAt)}</small>
+    </button>
+  );
+}
+
 // A DRAFT can be edited (the same copy is overwritten). A FINAL copy is locked.
 function OpenCv({ picked, version, baseContent, showChanges, onToggleChanges, isConfirmingFinal, onAskFinal, onCancelFinal, onConfirmFinal, isEditing, onEdit, onCancelEdit, onSaveEdit, isSaving, editError }) {
   const isFinal = version.status === "FINAL";
@@ -314,6 +341,23 @@ function EmptyRail({ title, text, action }) {
       </div>
     </div>
   );
+}
+
+// [a, b, c, d, e] with size 2 -> [[a, b], [c, d], [e]]
+function splitIntoRails(hangers, size) {
+  const rails = [];
+  let current = [];
+  for (const hanger of hangers) {
+    current.push(hanger);
+    if (current.length === size) {
+      rails.push(current);
+      current = [];
+    }
+  }
+  if (current.length > 0) {
+    rails.push(current);
+  }
+  return rails;
 }
 
 function jobsWithStatus(jobs, statuses) {
