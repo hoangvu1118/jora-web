@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import Hanger from "../components/Hanger";
 
@@ -8,9 +8,16 @@ const MIN_PASSWORD_LENGTH = 8;
 export default function LoginPage() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // The landing page's Sign up buttons open /login?mode=signup.
+  let startMode = "login";
+  if (searchParams.get("mode") === "signup") {
+    startMode = "signup";
+  }
 
   // 1. State
-  const [mode, setMode] = useState("login"); // "login" | "signup"
+  const [mode, setMode] = useState(startMode); // "login" | "signup"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -72,7 +79,7 @@ export default function LoginPage() {
     <div className="frame">
       <div className="auth">
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
-          <div className="logo">jora<span>.</span></div>
+          <Link className="logo" to="/">jora<span>.</span></Link>
           <h1>{title}</h1>
           <div className="tabs" role="tablist">
             <button type="button" role="tab" id="tab-login" aria-selected={mode === "login"} aria-controls="auth-panel" onClick={function () { switchMode("login"); }}>Log in</button>

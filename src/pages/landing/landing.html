@@ -1,0 +1,199 @@
+<!-- The approved landing page markup. Links to /login are handled by LandingPage.jsx. -->
+<div class="wrap">
+  <nav class="top">
+    <div class="logo">jora<span>.</span></div>
+    <div class="mid"><a href="#try">Try it</a><a href="#features">Features</a></div>
+    <div class="end"><a class="btn line" href="/login">Log in</a><a class="btn dark" href="/login?mode=signup">Sign up</a></div>
+  </nav>
+
+  <section class="hero-text">
+    <h1>A CV cut for every job<span>.</span></h1>
+    <div class="side">
+      <p>Upload your resume once. Jora finds matching jobs twice a day and tailors a version for each one, keeping your real experience and numbers.</p>
+      <a class="btn dark" href="/login?mode=signup">Upload my resume</a>
+    </div>
+  </section>
+
+  <div class="rack" aria-hidden="true">
+    <svg width="0" height="0" style="position:absolute">
+      <defs>
+        <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d4a46c"/><stop offset=".55" stop-color="#b47e46"/><stop offset="1" stop-color="#8d5d2e"/></linearGradient>
+        <symbol id="hanger" viewBox="0 0 200 90">
+          <path d="M100 62 V33 a7 7 0 0 1 14 0 v7" fill="none" stroke="#7d827e" stroke-width="4" stroke-linecap="round"/>
+          <path d="M12 77 Q100 44 188 77 Q193 84 184 87 Q100 57 16 87 Q7 84 12 77 Z" fill="url(#wood)"/>
+          <path d="M30 76 Q100 50 170 76" fill="none" stroke="#e6c391" stroke-width="1.2" opacity=".7"/>
+          <rect fill="#2b2f2d" x="34" y="78" width="9" height="13" rx="1.5"/>
+          <rect fill="#2b2f2d" x="157" y="78" width="9" height="13" rx="1.5"/>
+        </symbol>
+      </defs>
+    </svg>
+    <div class="rail"></div>
+    <div class="hangers">
+      <div class="hang">
+        <svg class="hanger"><use href="#hanger"/></svg>
+        <div class="cv base">
+          <div class="who">Emily Carter</div><div class="role">Software Engineer · London</div>
+          <div class="sec">Experience</div>
+          <div class="job">Software Engineer, Monzo · 2021–now</div>
+          <ul><li>Built REST APIs in Java and Spring Boot</li><li>Wrote integration tests for 12 services</li><li>Joined the on-call rota for payments</li></ul>
+          <div class="sec">Skills</div>
+          <div>Java · Spring Boot · PostgreSQL · Docker</div>
+          <div class="sec">Education</div>
+          <div>BSc Computer Science, University of Leeds · 2021</div>
+          <div class="sec">Projects</div>
+          <div>Expense tracker with React and Spring</div>
+        </div>
+        <div class="label"><b>Your base CV</b><span>Uploaded once</span></div>
+      </div>
+      <div class="hang">
+        <svg class="hanger"><use href="#hanger"/></svg>
+        <div class="cv">
+          <div class="who">James Whitmore</div><div class="role">Senior Backend Engineer · Singapore</div>
+          <div class="sec">Experience</div>
+          <div class="job">Backend Engineer, Wise · 2019–now</div>
+          <ul><li>Scaled the <mark>payments API</mark> to 3,000 requests a second</li><li>Cut card authorisation latency by 35%</li><li>Led the move from REST polling to <mark>Kafka</mark> events</li></ul>
+          <div class="sec">Skills</div>
+          <div><mark>Java · Kafka · PostgreSQL</mark> · AWS · Redis</div>
+          <div class="sec">Education</div>
+          <div>MEng Software Engineering, Imperial College · 2019</div>
+          <div class="sec">Projects</div>
+          <div>Idempotency library for payment retries</div>
+        </div>
+        <div class="label"><b>Stripe</b><span>Senior Backend Engineer</span></div>
+      </div>
+      <div class="hang">
+        <svg class="hanger"><use href="#hanger"/></svg>
+        <div class="cv">
+          <div class="who">Olivia Bennett</div><div class="role">Platform Engineer · Sydney</div>
+          <div class="sec">Experience</div>
+          <div class="job">Platform Engineer, Atlassian · 2020–now</div>
+          <ul><li>Ran <mark>Kubernetes</mark> clusters for 400 services</li><li>Cut CI build time from 22 to 9 minutes</li><li>Wrote <mark>Terraform</mark> modules used by 30 teams</li></ul>
+          <div class="sec">Skills</div>
+          <div><mark>Kubernetes · Terraform · AWS</mark> · Go · Docker</div>
+          <div class="sec">Education</div>
+          <div>BSc Computing, UNSW · 2020</div>
+          <div class="sec">Projects</div>
+          <div>Self-service preview environments</div>
+        </div>
+        <div class="label"><b>Canva</b><span>Platform Engineer</span></div>
+      </div>
+      <div class="hang">
+        <svg class="hanger"><use href="#hanger"/></svg>
+        <div class="cv">
+          <div class="who">Daniel Hughes</div><div class="role">Backend Engineer, Search · Ho Chi Minh City</div>
+          <div class="sec">Experience</div>
+          <div class="job">Backend Engineer, Shopee · 2021–now</div>
+          <ul><li>Built the <mark>search ranking</mark> service in Go</li><li>Improved query relevance, lifting clicks by 12%</li><li>Indexed 50M products in <mark>Elasticsearch</mark></li></ul>
+          <div class="sec">Skills</div>
+          <div><mark>Elasticsearch · Go</mark> · Kafka · Redis · Python</div>
+          <div class="sec">Education</div>
+          <div>BSc Computer Science, RMIT Vietnam · 2021</div>
+          <div class="sec">Projects</div>
+          <div>Typo-tolerant product search demo</div>
+        </div>
+        <div class="label"><b>Grab</b><span>Backend Engineer, Search</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-title" id="try">
+    <h2>Swipe today's matches</h2>
+    <p>Right keeps a job. Left skips it. Try it on these five.</p>
+  </div>
+
+  <div class="frame">
+    <div class="app" data-deck tabindex="0" aria-label="Suggested jobs, use arrow keys to save or skip">
+      <div class="deck-area">
+        <div><h3>Suggested for you</h3><p class="sub">Matched to "Backend Engineer, Remote"</p></div>
+        <div class="stack" data-stack></div>
+        <div class="controls">
+          <button class="btn skip" type="button" data-skip>Not for me</button>
+          <button class="btn sage" type="button" data-tailor>Tailor my CV</button>
+          <button class="btn save" type="button" data-save>Save</button>
+        </div>
+      </div>
+      <aside class="panel">
+        <div>
+          <h4>Today</h4>
+          <div class="count"><span>Left to review</span><b data-left>5</b></div>
+          <div class="count"><span>Saved</span><b data-saved>0</b></div>
+          <div class="count"><span>Skipped</span><b data-dismissed>0</b></div>
+        </div>
+        <p>Saved jobs move to your Jobs list. Skipped ones don't come back.</p>
+      </aside>
+    </div>
+  </div>
+
+  <section class="features" id="features">
+    <h2 class="features-title">What Jora does for you</h2>
+
+    <div class="feature">
+      <div class="f-text">
+        <h3>Jobs that match, not jobs that exist</h3>
+        <p>Tell Jora the role, place and type of work you want. Every new job is checked against it, and you see why each one made the cut.</p>
+      </div>
+      <div class="f-visual">
+        <div class="jobrow"><div><b>Senior Backend Engineer</b><span>Stripe · Singapore · Hybrid</span></div><div class="tags"><i>Title</i><i>Skills</i><i>Location</i></div></div>
+        <div class="jobrow"><div><b>Software Engineer, Platform</b><span>Canva · Sydney · Remote</span></div><div class="tags"><i>Title</i><i>Keywords</i></div></div>
+        <div class="jobrow dim"><div><b>Java Developer</b><span>Atlassian · Remote, APAC</span></div><div class="tags"><i>Skills</i></div></div>
+      </div>
+    </div>
+
+    <div class="feature wide">
+      <div class="f-text">
+        <h3>Fresh jobs twice a day, already sorted</h3>
+        <p>At 06:00 and 18:00 Jora pulls every new posting from company job boards, drops duplicates, checks each job against your search profile and ranks what's left. You only see the jobs that fit.</p>
+      </div>
+      <div class="f-visual pipeline" aria-hidden="true">
+        <div class="pile">
+          <span class="raw" style="left:2%;top:4%;--r:-6deg;--tx:170px;--ty:110px;animation-delay:0s"><b>Barista</b> · Highlands Coffee</span>
+          <span class="raw" style="left:18%;top:20%;--r:4deg;--tx:140px;--ty:80px;animation-delay:.3s"><b>Senior Backend Engineer</b> · Stripe</span>
+          <span class="raw dup" style="left:4%;top:36%;--r:-3deg;--tx:180px;--ty:40px;animation-delay:.6s"><b>Senior Backend Engineer</b> · Stripe</span>
+          <span class="raw" style="left:30%;top:50%;--r:7deg;--tx:110px;--ty:0px;animation-delay:.9s"><b>Sales Manager</b> · Shopee</span>
+          <span class="raw" style="left:6%;top:62%;--r:-8deg;--tx:170px;--ty:-30px;animation-delay:1.2s"><b>Java Developer</b> · Atlassian</span>
+          <span class="raw" style="left:22%;top:77%;--r:3deg;--tx:130px;--ty:-70px;animation-delay:1.5s"><b>Marketing Intern</b> · VNG</span>
+          <span class="raw" style="left:0%;top:88%;--r:-2deg;--tx:190px;--ty:-100px;animation-delay:1.8s"><b>Platform Engineer</b> · Canva</span>
+        </div>
+        <div class="pipe-wrap">
+          <div class="times"><span class="time am">06:00</span><span class="time pm">18:00</span></div>
+          <div class="pipe"><i></i><i></i><i></i><i></i></div>
+          <div class="stages"><span>Crawl</span><span>Drop duplicates</span><span>Match profile</span><span>Rank</span></div>
+        </div>
+        <div class="sorted">
+          <span class="sorted-label">Your matches</span>
+          <div class="ok"><b>Senior Backend Engineer · Stripe</b><em>Title</em></div>
+          <div class="ok"><b>Platform Engineer · Canva</b><em>Skills</em></div>
+          <div class="ok"><b>Java Developer · Atlassian</b><em>Skills</em></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature flip">
+      <div class="f-text">
+        <h3>One base CV, a tailored copy for every job</h3>
+        <p>Your base CV stays untouched. Each tailored copy is made from it and tagged with the job it was written for, so you always know which one to send.</p>
+      </div>
+      <div class="f-visual tree" aria-hidden="true">
+        <div>
+          <div class="mini"><div class="n"></div><div class="r"></div><div class="l"></div><div class="l"></div><div class="l s"></div><div class="l"></div><div class="l s"></div><div class="l"></div><div class="l s"></div></div>
+          <div class="mini-cap">Base CV</div>
+        </div>
+        <svg class="links" viewBox="0 0 100 240" preserveAspectRatio="none">
+          <path d="M0 120 C50 120 50 40 100 40"/><path d="M0 120 L100 120"/><path d="M0 120 C50 120 50 200 100 200"/>
+        </svg>
+        <div class="kids">
+          <div class="kid"><div class="thumb"><span></span><span class="hi"></span><span></span><span class="hi"></span><span></span></div><div><span class="jobtag">Senior Backend Engineer · Stripe</span><b>Tailored 2 Nov</b></div></div>
+          <div class="kid"><div class="thumb"><span></span><span></span><span class="hi"></span><span></span><span class="hi"></span></div><div><span class="jobtag">Platform Engineer · Canva</span><b>Tailored 3 Nov</b></div></div>
+          <div class="kid"><div class="thumb"><span></span><span class="hi"></span><span class="hi"></span><span></span><span></span></div><div><span class="jobtag">Backend Engineer · Grab</span><b>Tailored 3 Nov</b></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing">
+    <h2>Your next CV is one upload away<span>.</span></h2>
+    <a class="btn dark" href="/login?mode=signup">Upload my resume</a>
+  </section>
+
+  <footer>Jora. The jobs in the demo above are examples.</footer>
+</div>

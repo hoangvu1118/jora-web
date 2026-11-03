@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import RequireLogin from "./auth/RequireLogin";
 import Symbols from "./components/Symbols";
+import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import WelcomePage from "./pages/WelcomePage";
 import JobsPage from "./pages/JobsPage";
@@ -16,9 +17,9 @@ export default function App() {
     <>
       <Symbols />
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route element={<RequireLogin />}>
-          <Route path="/" element={<Navigate to="/jobs" replace />} />
           <Route path="/welcome" element={<WelcomePage />} />
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/jobs/:jobId" element={<JobDetailPage />} />

@@ -33,6 +33,7 @@ src/
   auth/               AuthContext (who is logged in) + RequireLogin
   components/         small pieces used by several screens (Icon, Hanger, TokenInput, SwipeDeck…)
   pages/              one file per screen
+    landing/          the approved landing page (markup, CSS, demo deck), shown at "/"
   utils/              plain helpers: labels for enums, dates, crawl times, CV diff
   styles/             base.css (tokens + shared parts) and app.css (screens), copied from the design
 mock/server.js        fake API for working without Spring Boot
@@ -89,6 +90,13 @@ House rules:
 - Functions are `function name() {}`, also for event handlers (`onClick={function () { … }}`).
 - Words for enum values live in `utils/labels.js` (`MIDDLE` → "Mid-level"), never in a page.
 - Styling: reuse the class names from `styles/`. No inline styles, except the deck's drag position.
+
+## The landing page
+
+`/` shows the approved landing page to visitors. Logged-in users go to `/jobs`. It is the one page
+that doesn't follow the pattern above: it is the design file as it was, inside a Shadow DOM so its
+CSS and the app's CSS can't affect each other. To change its words or layout, edit
+`src/pages/landing/landing.html` and `landing.css`. Log in, Sign up and Upload my resume go to `/login`.
 
 ## Backend to add
 
