@@ -3,6 +3,11 @@
 The Jora frontend: React 19 + Vite + React Router. It follows the approved design
 (`jora-design/app.html`), and it uses the same CSS class names.
 
+## Status
+
+All screens are built and tested against the mock API (`npm run mock`). Before Jora goes live,
+three things are left. None of them is frontend code. See [Before launch](#before-launch).
+
 ## Run it
 
 ```bash
@@ -127,3 +132,25 @@ Two smaller notes:
 - Saving a job tailors the CV for it from the browser, one job at a time (`src/tailor/TailorQueue.jsx`).
   A page reload forgets jobs that were still waiting. A sturdier version later: the backend starts the
   tailoring itself when a recommendation becomes SAVED.
+
+## Before launch
+
+Do these in order. Tick them off here as they're done.
+
+- [ ] **1. Add the backend endpoints** from [Backend to add](#backend-to-add) (1 to 4; CORS only if needed).
+  Until they exist, My resume and Tailored CVs only work against the mock.
+- [ ] **2. Run the app against the real Spring Boot once.** Stop the mock, start Spring Boot on :8080,
+  run `npm run dev`, then click through every screen with the browser console open:
+  log in, Jobs, Suggested (save and skip), a job page, My resume (upload), Tailored CVs (edit, mark final),
+  Search profile. Everything so far was tested against the mock, which copies the backend DTOs,
+  so this run catches any field that doesn't match.
+- [ ] **3. Go live on the EC2 server.**
+  - Build with `npm run build` and copy `dist/` to the server.
+  - Let nginx serve `dist/`, send `/api` to Spring Boot on :8080, and send every other path
+    to `index.html` (React Router handles the address in the browser).
+  - Serving the site and the API from the same domain means `VITE_API_URL` stays empty and no CORS is needed.
+  - Add a domain and HTTPS (for example Let's Encrypt with certbot).
+
+Known limit, fine for launch: saved jobs that are still waiting to be tailored are lost on a page reload
+(see the note under Backend to add). The fix later is for the backend to start tailoring when a
+recommendation becomes SAVED.
