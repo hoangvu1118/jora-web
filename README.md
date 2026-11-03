@@ -31,7 +31,8 @@ src/
     client.js         apiRequest(): adds the token, turns ProblemDetail errors into ApiError
     auth.js jobs.js recommendations.js resume.js searchProfile.js
   auth/               AuthContext (who is logged in) + RequireLogin
-  components/         small pieces used by several screens (Icon, Hanger, TokenInput, SwipeDeck…)
+  tailor/             TailorQueue: saving a job tailors the CV for it in the background
+  components/         small pieces used by several screens (Icon, Hanger, TokenInput, SwipeDeck, ResumeEditor…)
   pages/              one file per screen
     landing/          the approved landing page (markup, CSS, demo deck), shown at "/"
   utils/              plain helpers: labels for enums, dates, crawl times, CV diff
@@ -100,7 +101,7 @@ CSS and the app's CSS can't affect each other. To change its words or layout, ed
 
 ## Backend to add
 
-The screens call four things the Spring Boot app doesn't have yet. The shapes are written next
+The screens call five things the Spring Boot app doesn't have yet. The shapes are written next
 to each call in `src/api/resume.js`. `mock/server.js` already answers them, so you can see what
 they should return.
 
@@ -112,11 +113,17 @@ they should return.
    Returns `[{ id, status, jobId, jobTitle, companyName, createdAt }]`, newest first.
 3. **`POST /api/v1/resume/{resumeId}/versions/{versionId}/final`**: marks a DRAFT as FINAL
    (locked) and returns the version.
-4. **CORS, for production only**: in development Vite forwards `/api`, so the browser never needs it.
+4. **`PUT /api/v1/resume/{resumeId}/versions/{versionId}`** with body `{ "content": ResumeContent }`:
+   the Edit button on Tailored CVs. A DRAFT is overwritten in place (same row, 200, returns the version).
+   A FINAL copy is locked, so return 409. (Making a new row from a FINAL tailored copy would break
+   the V13 index of one TAILORED version per resume and job, so that waits for later.)
+5. **CORS, for production only**: in development Vite forwards `/api`, so the browser never needs it.
    If the frontend and API end up on different domains, add a `CorsConfigurationSource` bean
    (`SecurityConfig` already calls `.cors(...)`).
 
 Two smaller notes:
 
 - Recommendations don't include a short job blurb, so swipe cards link to the full job instead.
-- Editing a CV's text isn't in the backend yet, so there's no Edit button.
+- Saving a job tailors the CV for it from the browser, one job at a time (`src/tailor/TailorQueue.jsx`).
+  A page reload forgets jobs that were still waiting. A sturdier version later: the backend starts the
+  tailoring itself when a recommendation becomes SAVED.

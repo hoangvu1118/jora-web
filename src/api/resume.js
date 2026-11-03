@@ -60,3 +60,9 @@ export function getTailoredVersions(resumeId) {
 export function markVersionFinal(resumeId, versionId) {
   return apiRequest("/api/v1/resume/" + resumeId + "/versions/" + versionId + "/final", { method: "POST" });
 }
+
+// PUT /api/v1/resume/{id}/versions/{versionId}  body: { content: ResumeContent }
+//   -> the version with the new content. Only a DRAFT can be edited (FINAL gives 409).
+export function updateVersionContent(resumeId, versionId, content) {
+  return apiRequest("/api/v1/resume/" + resumeId + "/versions/" + versionId, { method: "PUT", body: { content: content } });
+}

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { setRecommendationStatus } from "../api/recommendations";
-import { getCurrentResume, tailorResume } from "../api/resume";
 import { EMPLOYMENT_TYPE_LABELS, LEVEL_LABELS, WORKPLACE_LABELS, labelFor } from "../utils/labels";
 import { formatClock, getNextCrawl, joinParts } from "../utils/format";
+import { useTailorQueue } from "../tailor/TailorQueue";
 import Hanger from "./Hanger";
 import Icon from "./Icon";
 import MiniSheet from "./MiniSheet";
@@ -13,8 +13,10 @@ const SWIPE_THRESHOLD = 100; // pixels a card must travel to count as a swipe
 const VISIBLE_CARDS = 3;
 const LEAVE_MS = 260; // matches .card.flying in app.css
 const TOAST_MS = 5000;
+const RAIL_SIZE = 3; // the side rail shows the last three saved jobs
 
 // The swipe deck. `matches` are the NEW recommendations, best first.
+// Saving a job also tailors the CV for it (in the background, see tailor/TailorQueue.jsx).
 export default function SwipeDeck({ matches, head }) {
   // 1. State
   const [index, setIndex] = useState(0); // the front card is matches[index]
@@ -25,21 +27,20 @@ export default function SwipeDeck({ matches, head }) {
   const [returningId, setReturningId] = useState(null); // the card that comes back after undo
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [isTailoring, setIsTailoring] = useState(false);
-  const [tailoredToday, setTailoredToday] = useState([]); // [{ id, companyName }]
   const [toast, setToast] = useState(null); // { text, actionLabel, onAction, link }
   const [announcement, setAnnouncement] = useState("");
 
+  const tailorQueue = useTailorQueue();
   const dragStart = useRef(null);
   const toastTimer = useRef(null);
 
   const front = matches[index];
   const hasFront = front !== undefined;
 
-  // 2. Keyboard: ← skip, → save, Z undo, T tailor, while the deck is on screen.
+  // 2. Keyboard: ← skip, → save, Z undo, while the deck is on screen.
   // The listener reads the newest handlers through a ref, so it never uses old state.
   const handlers = useRef({});
-  handlers.current = { decide: decide, undo: undo, tailor: tailor };
+  handlers.current = { decide: decide, undo: undo };
   useEffect(function () {
     function handleKey(event) {
       if (event.target.closest("input, textarea, select")) {
@@ -51,8 +52,6 @@ export default function SwipeDeck({ matches, head }) {
         handlers.current.decide(-1);
       } else if (event.key === "z" || event.key === "Z") {
         handlers.current.undo();
-      } else if (event.key === "t" || event.key === "T") {
-        handlers.current.tailor();
       }
     }
     document.addEventListener("keydown", handleKey);
@@ -70,11 +69,12 @@ export default function SwipeDeck({ matches, head }) {
     }
     const match = front;
     let newStatus = "DISMISSED";
-    let verb = "Skipped";
+    let toastText = "Skipped " + match.job.companyName;
     if (direction > 0) {
       newStatus = "SAVED";
-      verb = "Saved";
+      toastText = "Saved " + match.job.companyName + ". Tailoring your CV for it.";
       setSavedCount(savedCount + 1);
+      tailorQueue.addJob(match.job);
     } else {
       setSkippedCount(skippedCount + 1);
     }
@@ -85,9 +85,9 @@ export default function SwipeDeck({ matches, head }) {
     setReturningId(null);
     setTimeout(function () { setLeaving(null); }, LEAVE_MS);
 
-    setAnnouncement(verb + " " + match.job.title + " at " + match.job.companyName);
+    setAnnouncement(toastText);
     // The toast calls the newest undo (through the ref), not the one from this moment.
-    showToast({ text: verb + " " + match.job.companyName, actionLabel: "Undo", onAction: function () { handlers.current.undo(); } });
+    showToast({ text: toastText, actionLabel: "Undo", onAction: function () { handlers.current.undo(); } });
     setRecommendationStatus(match.id, newStatus).catch(function () {
       showToast({ text: "Couldn't update " + match.job.companyName + ". Check your connection." });
     });
@@ -102,6 +102,7 @@ export default function SwipeDeck({ matches, head }) {
     setIndex(index - 1);
     if (last.direction > 0) {
       setSavedCount(savedCount - 1);
+      tailorQueue.cancelJob(last.match.job.id);
     } else {
       setSkippedCount(skippedCount - 1);
     }
@@ -111,32 +112,6 @@ export default function SwipeDeck({ matches, head }) {
     setRecommendationStatus(last.match.id, "NEW").catch(function () {
       // The card is back on screen; the next swipe will set its status again.
     });
-  }
-
-  async function tailor() {
-    if (!hasFront || isTailoring) {
-      return;
-    }
-    const match = front;
-    setIsTailoring(true);
-    setAnnouncement("Tailoring your CV for " + match.job.companyName);
-    try {
-      const resume = await getCurrentResume();
-      if (resume === null) {
-        showToast({ text: "Upload your CV first", actionLabel: "Upload", link: "/resume" });
-      } else {
-        const version = await tailorResume(resume.id, match.job.id);
-        const newItem = { id: version.id, companyName: match.job.companyName };
-        setTailoredToday(function (current) {
-          return [...current, newItem].slice(-3); // the rail holds the last three
-        });
-        showToast({ text: "Tailored CV for " + match.job.companyName + " is ready", actionLabel: "View", link: "/tailored?version=" + version.id });
-        setAnnouncement("Tailored CV for " + match.job.companyName + " is ready");
-      }
-    } catch (error) {
-      showToast({ text: error.message });
-    }
-    setIsTailoring(false);
   }
 
   function showToast(newToast) {
@@ -219,10 +194,7 @@ export default function SwipeDeck({ matches, head }) {
     leavingCard = <LeavingCard match={leaving.match} direction={leaving.direction} fromX={leaving.fromX} />;
   }
 
-  let tailorLabel = "Tailor my CV";
-  if (isTailoring) {
-    tailorLabel = "Tailoring…";
-  }
+  const railJobs = tailorQueue.jobs.slice(-RAIL_SIZE);
 
   let deckClass = "deck";
   if (!hasFront) {
@@ -231,7 +203,7 @@ export default function SwipeDeck({ matches, head }) {
 
   // 6. Render
   return (
-    <div className={deckClass} aria-label="Suggested jobs. Right arrow saves, left arrow skips, Z undoes.">
+    <div className={deckClass} aria-label="Suggested jobs. Right arrow saves and tailors your CV, left arrow skips, Z undoes.">
       <div className="deck-main">
         <div className="deck-head">
           {head}
@@ -244,13 +216,9 @@ export default function SwipeDeck({ matches, head }) {
         <div className="deck-foot">
           <div className="controls">
             <button className="btn skip" type="button" onClick={function () { decide(-1); }} disabled={!hasFront}><Icon name="x" />Skip</button>
-            <button className="btn sage" type="button" onClick={tailor} disabled={!hasFront || isTailoring} aria-busy={isTailoring}>
-              {isTailoring && <span className="spinner" aria-hidden="true"></span>}
-              {tailorLabel}
-            </button>
-            <button className="btn dark" type="button" onClick={function () { decide(1); }} disabled={!hasFront}>Save<Icon name="check" /></button>
+            <button className="btn dark" type="button" onClick={function () { decide(1); }} disabled={!hasFront}>Save &amp; tailor<Icon name="check" /></button>
           </div>
-          <p className="keys">Keys: <kbd>←</kbd> skip · <kbd>→</kbd> save · <kbd>Z</kbd> undo · <kbd>T</kbd> tailor</p>
+          <p className="keys">Keys: <kbd>←</kbd> skip · <kbd>→</kbd> save &amp; tailor · <kbd>Z</kbd> undo</p>
           <Toast toast={toast} />
         </div>
       </div>
@@ -263,21 +231,17 @@ export default function SwipeDeck({ matches, head }) {
           <div className="count"><span>Skipped</span><b>{skippedCount}</b></div>
         </div>
         <div>
-          <h2 className="eyelabel">Tailored today</h2>
+          <h2 className="eyelabel">Tailored for saved jobs</h2>
           <div className="minirack">
             <div className="rail"></div>
-            {tailoredToday.length === 0 && <p className="empty-note">Tap Tailor my CV and the new copy hangs here.</p>}
+            {railJobs.length === 0 && <p className="empty-note">Save a job and its tailored CV hangs here.</p>}
             <div className="minirack-row">
-              {tailoredToday.map(function (item) {
-                return (
-                  <Link className="mini-hang" key={item.id} to={"/tailored?version=" + item.id}>
-                    <span className="swing"><Hanger /><MiniSheet /></span>
-                    <span className="co">{item.companyName}</span>
-                  </Link>
-                );
+              {railJobs.map(function (job) {
+                return <RailJob key={job.jobId} job={job} />;
               })}
             </div>
           </div>
+          {railJobs.length > 0 && <Link className="rail-more" to="/tailored">All tailored CVs</Link>}
         </div>
       </aside>
       <p className="sr-only" aria-live="polite">{announcement}</p>
@@ -286,6 +250,34 @@ export default function SwipeDeck({ matches, head }) {
 }
 
 // ---------- pieces of the deck ----------
+
+// One saved job on the side rail. It links to its CV once the CV is ready.
+function RailJob({ job }) {
+  if (job.status === "done") {
+    return (
+      <Link className="mini-hang" to={"/tailored?version=" + job.versionId}>
+        <span className="swing"><Hanger /><MiniSheet /></span>
+        <span className="co">{job.companyName}</span>
+      </Link>
+    );
+  }
+  if (job.status === "failed") {
+    return (
+      <Link className="mini-hang is-failed" to="/tailored" title={job.message}>
+        <span className="swing"><Hanger /><MiniSheet /></span>
+        <span className="co">{job.companyName}</span>
+        <span className="co-note">Couldn't tailor</span>
+      </Link>
+    );
+  }
+  return (
+    <span className="mini-hang is-pending">
+      <span className="swing"><Hanger /><MiniSheet /></span>
+      <span className="co">{job.companyName}</span>
+      <span className="co-note">Tailoring…</span>
+    </span>
+  );
+}
 
 function CardContent({ match }) {
   const job = match.job;
