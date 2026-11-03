@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import Icon from "./Icon";
 
@@ -27,7 +27,7 @@ export default function AppNav() {
 
   return (
     <nav className="appnav" aria-label="Jora">
-      <span className="logo">jora<span>.</span></span>
+      <Link className="logo" to="/jobs">jora<span>.</span></Link>
       {NAV_ITEMS.map(function (item) {
         return (
           <NavLink key={item.to} to={item.to}>

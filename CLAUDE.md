@@ -48,6 +48,8 @@ Copy an existing page in `src/pages/` when adding a new one.
 - **Enum words live in `src/utils/labels.js`** (`MIDDLE` -> "Mid-level"). Never hard-code them in a page.
 - **Styling:** reuse the class names in `src/styles/` (copied from the approved design).
   No new colours or fonts, and no inline styles (the swipe deck's drag position is the one exception).
+- The landing page (`src/pages/landing/`, shown at `/`) is the approved design kept as is, inside a
+  Shadow DOM. It is the one exception to the page pattern. Don't change its words or animation unless Hoang asks.
 - Keep functions small, with one job each, and add a short comment that says why (not what) when it isn't obvious.
 
 ## Working here
