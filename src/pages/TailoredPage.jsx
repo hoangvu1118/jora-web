@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { getCurrentResume, getTailoredVersions, getVersion, markVersionFinal } from "../api/resume";
+import { getCurrentResume, getTailoredVersions, getVersion, markVersionFinal, updateVersionContent } from "../api/resume";
 import Hanger from "../components/Hanger";
 import MiniSheet from "../components/MiniSheet";
 import PageHeader from "../components/PageHeader";
 import { PageError, PageLoading } from "../components/PageStatus";
 import ResumeDocument from "../components/ResumeDocument";
+import ResumeEditor from "../components/ResumeEditor";
+import { useTailorQueue } from "../tailor/TailorQueue";
 import { findChangedBullets } from "../utils/resumeDiff";
 import { formatDay } from "../utils/format";
 
 const TITLE = "Tailored CVs";
-const SUB = "One copy per job, each made from your base CV.";
+const SUB = "Every job you save gets its own copy, made from your base CV.";
 
 export default function TailoredPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,6 +26,15 @@ export default function TailoredPage() {
   const [showChanges, setShowChanges] = useState(true);
   const [isConfirmingFinal, setIsConfirmingFinal] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editStatus, setEditStatus] = useState("idle"); // idle | saving | error
+  const [editError, setEditError] = useState("");
+
+  // Saved jobs whose CV is still being made (or failed) show on the rail too.
+  const tailorQueue = useTailorQueue();
+  const pendingJobs = jobsWithStatus(tailorQueue.jobs, ["waiting", "working"]);
+  const failedJobs = jobsWithStatus(tailorQueue.jobs, ["failed"]);
+  const doneCount = jobsWithStatus(tailorQueue.jobs, ["done"]).length;
 
   // The picked hanger lives in the address (?version=12), so links can open a specific CV.
   const pickedId = Number(searchParams.get("version"));
@@ -39,6 +50,13 @@ export default function TailoredPage() {
     }
   }, [resume, pickedId]);
 
+  // Each time a saved job's CV is ready, fetch the list again so its hanger appears.
+  useEffect(function () {
+    if (resume !== null && doneCount > 0) {
+      refreshList(resume.id);
+    }
+  }, [doneCount]);
+
   // 3. Handlers
   async function loadList() {
     setStatus("loading");
@@ -49,12 +67,7 @@ export default function TailoredPage() {
         setStatus("ready");
         return;
       }
-      const list = await getTailoredVersions(current.id);
-      setVersions(list);
-      // Nothing picked yet: open the newest copy.
-      if (!pickedId && list.length > 0) {
-        setSearchParams({ version: String(list[0].id) }, { replace: true });
-      }
+      await refreshList(current.id);
       setStatus("ready");
     } catch (error) {
       setErrorMessage(error.message);
@@ -62,8 +75,19 @@ export default function TailoredPage() {
     }
   }
 
+  // Fetches the hangers again, without the loading screen.
+  async function refreshList(resumeId) {
+    const list = await getTailoredVersions(resumeId);
+    setVersions(list);
+    // Nothing picked yet: open the newest copy.
+    if (!pickedId && list.length > 0) {
+      setSearchParams({ version: String(list[0].id) }, { replace: true });
+    }
+  }
+
   async function loadVersion(versionId) {
     setIsConfirmingFinal(false);
+    setIsEditing(false);
     setActionError("");
     try {
       const version = await getVersion(resume.id, versionId);
@@ -97,6 +121,26 @@ export default function TailoredPage() {
     }
   }
 
+  function startEditing() {
+    setIsConfirmingFinal(false);
+    setEditStatus("idle");
+    setEditError("");
+    setIsEditing(true);
+  }
+
+  async function saveEdit(newContent) {
+    setEditStatus("saving");
+    try {
+      const updated = await updateVersionContent(resume.id, openVersion.id, newContent);
+      setOpenVersion(updated);
+      setIsEditing(false);
+      setEditStatus("idle");
+    } catch (error) {
+      setEditError(error.message);
+      setEditStatus("error");
+    }
+  }
+
   // 4. Decide what to show
   if (status === "loading") {
     return <PageLoading title={TITLE} />;
@@ -113,12 +157,12 @@ export default function TailoredPage() {
       />
     );
   }
-  if (versions.length === 0) {
+  if (versions.length === 0 && pendingJobs.length === 0 && failedJobs.length === 0) {
     return (
       <EmptyRail
         title="Your rail is empty"
-        text="Open any job and press Tailor my CV. The new copy hangs here."
-        action={<Link className="btn line" to="/jobs">Browse jobs</Link>}
+        text="Save a job from Suggested or from a job page. Jora tailors your CV for it, and the copy hangs here."
+        action={<Link className="btn line" to="/suggested">Review suggested jobs</Link>}
       />
     );
   }
@@ -126,7 +170,9 @@ export default function TailoredPage() {
   const picked = findById(versions, pickedId);
 
   let documentArea = <span className="spinner" aria-label="Loading CV"></span>;
-  if (picked !== null && openVersion !== null && openVersion.id === picked.id) {
+  if (versions.length === 0) {
+    documentArea = <p className="empty-note">Your first tailored CV is on its way. It opens here when it's ready.</p>;
+  } else if (picked !== null && openVersion !== null && openVersion.id === picked.id) {
     documentArea = (
       <OpenCv
         picked={picked}
@@ -138,6 +184,12 @@ export default function TailoredPage() {
         onAskFinal={function () { setIsConfirmingFinal(true); }}
         onCancelFinal={function () { setIsConfirmingFinal(false); }}
         onConfirmFinal={confirmFinal}
+        isEditing={isEditing}
+        onEdit={startEditing}
+        onCancelEdit={function () { setIsEditing(false); }}
+        onSaveEdit={saveEdit}
+        isSaving={editStatus === "saving"}
+        editError={editError}
       />
     );
   }
@@ -149,6 +201,15 @@ export default function TailoredPage() {
       <div className="tail-rack">
         <div className="rail"></div>
         <div className="tail-row" aria-label="Pick a tailored CV">
+          {pendingJobs.map(function (job) {
+            return (
+              <div key={"pending-" + job.jobId} className="tail-pick is-pending" role="status">
+                <span className="swing"><Hanger /><MiniSheet /></span>
+                <span className="jobtag">{job.jobTitle} · {job.companyName}</span>
+                <small><span className="spinner" aria-hidden="true"></span>Tailoring…</small>
+              </div>
+            );
+          })}
           {versions.map(function (item) {
             return (
               <button key={item.id} className="tail-pick" type="button" aria-pressed={item.id === pickedId} onClick={function () { pickVersion(item.id); }}>
@@ -160,6 +221,18 @@ export default function TailoredPage() {
           })}
         </div>
       </div>
+      {failedJobs.length > 0 && (
+        <div className="tail-failed" role="alert">
+          {failedJobs.map(function (job) {
+            return (
+              <p key={job.jobId}>
+                <span className="err">Couldn't tailor your CV for {job.companyName}. {job.message}</span>
+                <button className="btn line" type="button" onClick={function () { tailorQueue.retryJob(job.jobId); }}>Try again</button>
+              </p>
+            );
+          })}
+        </div>
+      )}
       {actionError !== "" && <p className="err" role="alert">{actionError}</p>}
       {documentArea}
     </div>
@@ -167,22 +240,37 @@ export default function TailoredPage() {
 }
 
 // The open CV: title, status, tools, then the document.
-function OpenCv({ picked, version, baseContent, showChanges, onToggleChanges, isConfirmingFinal, onAskFinal, onCancelFinal, onConfirmFinal }) {
+// A DRAFT can be edited (the same copy is overwritten). A FINAL copy is locked.
+function OpenCv({ picked, version, baseContent, showChanges, onToggleChanges, isConfirmingFinal, onAskFinal, onCancelFinal, onConfirmFinal, isEditing, onEdit, onCancelEdit, onSaveEdit, isSaving, editError }) {
   const isFinal = version.status === "FINAL";
 
   let statusPill = <span className="status draft">Draft</span>;
+  let editButton = <button className="btn line" type="button" onClick={onEdit}>Edit</button>;
   let finalButton = <button className="btn dark" type="button" onClick={onAskFinal}>Mark as final</button>;
   if (isFinal) {
     statusPill = <span className="status final">Final</span>;
+    editButton = null;
     finalButton = null;
   }
-  if (isConfirmingFinal) {
+  if (isConfirmingFinal || isEditing) {
+    editButton = null;
     finalButton = null;
   }
 
   let changedBullets = null;
   if (showChanges) {
     changedBullets = findChangedBullets(baseContent, version.content);
+  }
+
+  let documentBody = (
+    <article className="doc">
+      <ResumeDocument content={version.content} changedBullets={changedBullets} />
+    </article>
+  );
+  if (isEditing) {
+    documentBody = (
+      <ResumeEditor content={version.content} isSaving={isSaving} errorMessage={editError} onSave={onSaveEdit} onCancel={onCancelEdit} />
+    );
   }
 
   return (
@@ -197,6 +285,7 @@ function OpenCv({ picked, version, baseContent, showChanges, onToggleChanges, is
             <i aria-hidden="true"></i>Highlight changes
           </button>
           <Link className="btn line" to={"/jobs/" + picked.jobId}>Open job</Link>
+          {editButton}
           {finalButton}
         </div>
       </div>
@@ -208,9 +297,7 @@ function OpenCv({ picked, version, baseContent, showChanges, onToggleChanges, is
           <button className="btn quiet" type="button" onClick={onCancelFinal}>Cancel</button>
         </div>
       )}
-      <article className="doc">
-        <ResumeDocument content={version.content} changedBullets={changedBullets} />
-      </article>
+      {documentBody}
     </>
   );
 }
@@ -227,6 +314,16 @@ function EmptyRail({ title, text, action }) {
       </div>
     </div>
   );
+}
+
+function jobsWithStatus(jobs, statuses) {
+  const found = [];
+  for (const job of jobs) {
+    if (statuses.includes(job.status)) {
+      found.push(job);
+    }
+  }
+  return found;
 }
 
 function findById(items, id) {

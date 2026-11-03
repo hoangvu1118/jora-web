@@ -211,6 +211,15 @@ const server = http.createServer(async function (req, res) {
     if (method === "POST" && match[2]) {
       version.status = "FINAL";
     }
+    if (method === "PUT" && !match[2]) {
+      // Edit: only a DRAFT can change. A FINAL copy is locked.
+      if (version.status === "FINAL") {
+        return problem(res, 409, "This CV is final, so it can't be edited.");
+      }
+      const body = await readJson(req);
+      await wait(400);
+      version.content = body.content;
+    }
     return send(res, 200, versionBrief(version));
   }
   if (method === "POST" && path.endsWith("/archive")) {

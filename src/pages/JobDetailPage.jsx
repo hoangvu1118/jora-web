@@ -87,6 +87,11 @@ export default function JobDetailPage() {
       await setRecommendationStatus(matchId, newStatus);
     } catch {
       setIsSaved(isSaved); // put it back
+      return;
+    }
+    // A saved job always gets a tailored CV, so the user finds it under Tailored CVs.
+    if (newStatus === "SAVED" && tailorStatus === "idle") {
+      startTailor();
     }
   }
 
