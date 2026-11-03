@@ -178,7 +178,6 @@
 /* Tailored rail picker */
 .tail-rack { position: relative; margin-bottom: var(--s6); }
 .tail-rack .rail { position: absolute; left: 0; right: 0; top: 16px; }
-.tail-row { display: flex; gap: var(--s6); padding: 0 var(--s5); position: relative; z-index: 1; overflow-x: auto; }
 .tail-pick { border: 0; background: none; padding: 0 0 var(--s2); display: grid; justify-items: center; align-content: start; gap: var(--s2); width: 230px; flex: none; }
 .tail-pick .jobtag { max-width: 100%; text-align: center; }
 .tail-pick .swing { --hook: 16px; transition: transform var(--mid) var(--ease-out); }
@@ -308,4 +307,19 @@ textarea.input { min-height: 120px; resize: vertical; line-height: 1.5; }
 @media (max-width: 600px) {
   .appnav .me { display: none; }
   .phone-logout { display: flex; justify-content: center; padding-top: var(--s6); }
+}
+
+/* Tailored CVs: a wardrobe of rails on the left, the open CV on the right.
+   The wardrobe stays in view while the CV scrolls, so picking another CV needs no scrolling. */
+.tail-layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: var(--s7); align-items: start; }
+.wardrobe { position: sticky; top: 88px; max-height: calc(100vh - 112px); overflow-y: auto; display: grid; gap: var(--s4); padding: var(--s2) 0; } /* no box: the rails sit straight on the page */
+.wardrobe-rail { position: relative; }
+.wardrobe-rail .rail { position: absolute; left: 0; right: 0; top: 16px; }
+.wardrobe-row { display: flex; justify-content: space-around; position: relative; z-index: 1; }
+.wardrobe .tail-pick { width: 140px; }
+.wardrobe .tail-pick .jobtag { justify-content: center; }
+.tail-main { min-width: 0; }
+@media (max-width: 900px) {
+  .tail-layout { grid-template-columns: 1fr; gap: var(--s5); }
+  .wardrobe { position: static; max-height: 360px; }
 }
