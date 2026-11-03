@@ -312,7 +312,7 @@ textarea.input { min-height: 120px; resize: vertical; line-height: 1.5; }
 /* Tailored CVs: a wardrobe of rails on the left, the open CV on the right.
    The wardrobe stays in view while the CV scrolls, so picking another CV needs no scrolling. */
 .tail-layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: var(--s7); align-items: start; }
-.wardrobe { position: sticky; top: 88px; max-height: calc(100vh - 112px); overflow-y: auto; display: grid; gap: var(--s4); padding: var(--s5) var(--s4) var(--s3); border: var(--border); border-radius: var(--r2); background: var(--sage-wash); }
+.wardrobe { position: sticky; top: 88px; max-height: calc(100vh - 112px); overflow-y: auto; display: grid; gap: var(--s4); padding: var(--s2) 0; } /* no box: the rails sit straight on the page */
 .wardrobe-rail { position: relative; }
 .wardrobe-rail .rail { position: absolute; left: 0; right: 0; top: 16px; }
 .wardrobe-row { display: flex; justify-content: space-around; position: relative; z-index: 1; }
