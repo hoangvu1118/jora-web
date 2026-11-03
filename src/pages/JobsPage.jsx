@@ -95,12 +95,21 @@ export default function JobsPage() {
       </div>
     );
   } else {
+    // Column names, so the user knows what each part of a row means.
+    // Hidden on phones, where the parts of a row stack instead of lining up.
     list = (
-      <div className="joblist">
-        {shown.map(function (match) {
-          return <JobRow key={match.id} match={match} />;
-        })}
-      </div>
+      <>
+        <div className="joblist-head" aria-hidden="true">
+          <span>Job</span>
+          <span>Why it matches</span>
+          <span>Status</span>
+        </div>
+        <div className="joblist">
+          {shown.map(function (match) {
+            return <JobRow key={match.id} match={match} />;
+          })}
+        </div>
+      </>
     );
   }
 

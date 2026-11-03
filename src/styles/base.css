@@ -187,9 +187,9 @@ kbd { font: 500 12px/1 var(--font-data); border: 1px solid var(--line); border-b
 .count b { font: 500 26px/1 var(--font-data); font-variant-numeric: tabular-nums; }
 .deck-side p { font: var(--t-meta); color: var(--muted); }
 .minirack { position: relative; padding-top: 10px; min-height: 150px; }
-.minirack .rail { position: absolute; left: 0; right: 0; top: 14px; height: 3px; }
+.minirack .rail { position: absolute; left: 0; right: 0; top: 19px; height: 3px; } /* passes through the hanger hooks */
 .minirack .rail::before, .minirack .rail::after { top: -8px; height: 19px; width: 3px; }
-.minirack-row { display: flex; gap: 10px; position: relative; z-index: 1; min-height: 120px; }
+.minirack-row { display: flex; gap: 10px; position: relative; z-index: 1; min-height: 120px; padding: 0 var(--s3); }
 .minirack .empty-note { position: absolute; top: 40px; left: 0; right: 0; font: var(--t-meta); color: var(--muted); }
 .mini-hang { width: 74px; animation: slide-on 620ms var(--ease-out) both; }
 .mini-hang .swing { --hook: 11px; animation: settle 1100ms var(--ease-out) 300ms both; }

@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState(startMode); // "login" | "signup"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,17 +34,32 @@ export default function LoginPage() {
   function switchMode(newMode) {
     setMode(newMode);
     setFormError("");
+    setEmailError("");
     setPasswordError("");
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
     setFormError("");
+
+    // Check both boxes first, so the user sees every problem at once.
+    let hasProblem = false;
+    if (!email.includes("@")) {
+      setEmailError("Enter your email address, like name@example.com.");
+      hasProblem = true;
+    } else {
+      setEmailError("");
+    }
     if (password.length < MIN_PASSWORD_LENGTH) {
       setPasswordError("Password must be at least 8 characters long.");
+      hasProblem = true;
+    } else {
+      setPasswordError("");
+    }
+    if (hasProblem) {
       return;
     }
-    setPasswordError("");
+
     setIsSubmitting(true);
     try {
       if (mode === "signup") {
@@ -88,7 +104,18 @@ export default function LoginPage() {
           <div className="auth-fields" role="tabpanel" id="auth-panel" aria-labelledby={"tab-" + mode}>
             <div className="field">
               <label htmlFor="email">Email</label>
-              <input className="input" id="email" type="email" autoComplete="email" required value={email} onChange={function (event) { setEmail(event.target.value); }} />
+              <input
+                className="input"
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                aria-invalid={emailError !== ""}
+                aria-describedby="email-error"
+                onChange={function (event) { setEmail(event.target.value); }}
+              />
+              {emailError !== "" && <span className="err" id="email-error">{emailError}</span>}
             </div>
             <div className="field">
               <label htmlFor="password">Password</label>

@@ -100,6 +100,8 @@
 .filters button:hover { background: var(--sage-wash); }
 .filters button[aria-pressed="true"] { background: var(--ink); color: #fff; font-weight: 700; }
 .filters button b { font-weight: inherit; opacity: .7; margin-left: 2px; }
+.joblist-head { display: grid; grid-template-columns: 1fr 250px 80px; gap: var(--s5); padding: 0 0 var(--s2); font: var(--t-label); color: var(--muted); }
+.joblist-head span:not(:first-child) { text-align: right; }
 .joblist { border-top: var(--border); }
 .jobrow { display: grid; grid-template-columns: 1fr 250px 80px; gap: var(--s5); align-items: center; padding: var(--s4) 0; border-bottom: var(--hairline); transition: background var(--fast) linear; }
 .jobrow:hover { background: var(--sage-wash); box-shadow: -12px 0 0 var(--sage-wash), 12px 0 0 var(--sage-wash); }
@@ -221,7 +223,8 @@
   .auth-form { padding: var(--s6) var(--s4); }
   .page { padding: var(--s5) var(--s4); }
   .appnav { padding: var(--s3) var(--s4); gap: var(--s4); }
-  .appnav .me { display: none; }
+  .appnav .me .name, .appnav .me .avatar { display: none; } /* keep Log out, drop the name */
+  .joblist-head { display: none; }
   .jobrow { grid-template-columns: 1fr auto; gap: var(--s2) var(--s3); }
   .jobrow .reasons { grid-column: 1; justify-content: start; }
   .jobrow .status { grid-row: 1; grid-column: 2; align-self: start; }
@@ -298,4 +301,11 @@ textarea.input { min-height: 120px; resize: vertical; line-height: 1.5; }
 @media (max-width: 600px) {
   .edit-grid { grid-template-columns: 1fr; }
   .edit-actions { bottom: 72px; }
+}
+
+/* Phones: the bottom tab bar has no room for Log out, so Search profile shows it */
+.phone-logout { display: none; }
+@media (max-width: 600px) {
+  .appnav .me { display: none; }
+  .phone-logout { display: flex; justify-content: center; padding-top: var(--s6); }
 }

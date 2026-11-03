@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { createSearchProfile, getSearchProfile, updateSearchProfile } from "../api/searchProfile";
+import { useAuth } from "../auth/AuthContext";
 import { MultiChoice, SingleChoice } from "../components/ChoiceButtons";
 import PageHeader from "../components/PageHeader";
 import { PageError, PageLoading } from "../components/PageStatus";
@@ -19,6 +20,8 @@ const EMPTY_PROFILE = {
 };
 
 export default function ProfilePage() {
+  const auth = useAuth();
+
   // 1. State
   const [profile, setProfile] = useState(EMPTY_PROFILE); // what the form shows
   const [exists, setExists] = useState(false); // true -> PATCH, false -> POST
@@ -124,6 +127,9 @@ export default function ProfilePage() {
           <p>Jora scores new jobs against this profile after each check, at {crawlTimes[0]} and {crawlTimes[1]} your time.</p>
           <p>New matches wait in <Link to="/suggested">Suggested</Link>. Every match, saved or not, is listed in <Link to="/jobs">Jobs</Link>.</p>
         </aside>
+      </div>
+      <div className="phone-logout">
+        <button className="btn line" type="button" onClick={auth.logOut}>Log out</button>
       </div>
     </div>
   );
