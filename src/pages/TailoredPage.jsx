@@ -13,7 +13,7 @@ import { formatDay } from "../utils/format";
 
 const TITLE = "Tailored CVs";
 const SUB = "Every job you save gets its own copy, made from your base CV.";
-const HANGERS_PER_RAIL = 2;
+const HANGERS_PER_RAIL = 3; // keep in step with .wardrobe-row in app.css
 
 export default function TailoredPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -195,7 +195,7 @@ export default function TailoredPage() {
     );
   }
 
-  // The wardrobe: CVs still being made first, then the finished ones, two hangers per rail.
+  // The wardrobe: CVs still being made first, then the finished ones, three hangers per rail.
   const hangers = [];
   for (const job of pendingJobs) {
     hangers.push({ kind: "pending", key: "pending-" + job.jobId, job: job });
